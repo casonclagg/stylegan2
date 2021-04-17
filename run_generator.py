@@ -15,6 +15,46 @@ import sys
 import pretrained_networks
 
 #----------------------------------------------------------------------------
+# output_gifs_path = Path('output_gifs')
+# if not output_gifs_path.exists():
+#     output_gifs_path.mkdir()
+
+# Generate images given a random seed (Integer)
+def generate_image_random(rand_seed):
+    rnd = np.random.RandomState(rand_seed)
+    z = rnd.randn(1, *Gs.input_shape[1:])
+    tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars})
+    images = Gs.run(z, None, **Gs_kwargs)
+    return images, z
+
+# Generate images given a latent code ( vector of size [1, 512] )
+def generate_image_from_z(z):
+    images = Gs.run(z, None, **Gs_kwargs)
+    return images
+
+def make_latent_interp_animation(code1, code2, img1, img2, num_interps):
+    
+    step_size = 1.0/num_interps
+    
+    all_imgs = []
+    
+    amounts = np.arange(0, 1, step_size)
+    
+    for alpha in tqdm(amounts):
+        interpolated_latent_code = linear_interpolate(code1, code2, alpha)
+        images = generate_image_from_z(interpolated_latent_code)
+        interp_latent_image = Image.fromarray(images[0]).resize((400, 400))
+        frame = get_concat_h(img1, interp_latent_image)
+        frame = get_concat_h(frame, img2)
+        all_imgs.append(frame)
+
+    save_name = output_gifs_path/'latent_space_traversal.gif'
+    all_imgs[0].save(save_name, save_all=True, append_images=all_imgs[1:], duration=1000/fps, loop=0)
+
+def linear_interpolate(code1, code2, alpha):
+    return code1 * alpha + code2 * (1 - alpha)
+
+# interpolated_latent_code = linear_interpolate(latent_code1, latent_code2, 0.5)
 
 def generate_images(network_pkl, seeds, truncation_psi):
     print('Loading networks from "%s"...' % network_pkl)
@@ -31,9 +71,12 @@ def generate_images(network_pkl, seeds, truncation_psi):
         print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
         rnd = np.random.RandomState(seed)
         z = rnd.randn(1, *Gs.input_shape[1:]) # [minibatch, component]
+        print(f'z: {z}')
         tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars}) # [height, width]
         images = Gs.run(z, None, **Gs_kwargs) # [minibatch, height, width, channel]
+        print(f'images: {len(images)}')
         PIL.Image.fromarray(images[0], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % seed))
+        # PIL.Image.fromarray(images[1], 'RGB').save(dnnlib.make_run_dir_path('seed%04d.png' % seed))
 
 #----------------------------------------------------------------------------
 
