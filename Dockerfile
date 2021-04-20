@@ -10,6 +10,8 @@ RUN pip install scipy==1.3.3
 RUN pip install requests==2.22.0
 RUN pip install Pillow==6.2.1
 RUN pip install tqdm
+RUN pip install cmake
+RUN pip install dlib
 
 WORKDIR /content
 
