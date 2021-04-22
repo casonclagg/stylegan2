@@ -13,6 +13,9 @@ RUN pip install tqdm
 RUN pip install cmake
 RUN pip install dlib
 
+RUN apt-get update && apt-get install -y \
+    imagemagick libmagickwand-dev --no-install-recommends
+
 WORKDIR /content
 
-copy . .
+COPY . .

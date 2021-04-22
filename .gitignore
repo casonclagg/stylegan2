@@ -7,3 +7,5 @@ old-aligned/
 aligned_imgs/
 datasets_stylegan2/
 shape_predictor_68_face_landmarks.dat
+pickles/
+lil_pickles/
