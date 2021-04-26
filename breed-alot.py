@@ -60,8 +60,10 @@ def bang(pickleA, pickleB, name, index, outputDir):
     with open(pickleB, mode='rb') as latent_pickle:
         latent_b = pickle.load(latent_pickle)
     for z_index in range(512):
-        if random.random() > 0.5:
-            latent_a[0][0][z_index] = latent_b[0][0][z_index]
+        # if random.random() > 0.5:
+        small = min([latent_b[0][0][z_index],latent_a[0][0][z_index]])
+        big = max([latent_b[0][0][z_index],latent_a[0][0][z_index]])
+        latent_a[0][0][z_index] =  random.uniform(small, big)
         for x in range(18):
             latent_a[0][x][z_index] = latent_a[0][0][z_index]
     images = generate_image_from_pickle(latent_a)
@@ -98,7 +100,7 @@ def main():
     outputDir = sys.argv[2]
     babyCount = int(sys.argv[3])
 
-    all_pickles = get_all_pickles("pickles")
+    all_pickles = get_all_pickles(pickleDir)
     
     count = 0
     for dad in all_pickles:
